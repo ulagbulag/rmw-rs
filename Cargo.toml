@@ -1,5 +1,5 @@
 [workspace]
-members = ["./dash", "./sys"]
+members = ["./dash", "./rmw", "./sys"]
 resolver = "2"
 
 [workspace.package]
@@ -17,6 +17,7 @@ repository = "https://github.com/ulagbulag/rmw-rs"
 version = "0.1.0"
 
 [workspace.dependencies]
+anyhow = { version = "1.0" }
 bindgen = { version = "0.68" }
 regex = { version = "1.10" }
 tracing = { version = "0.1" }

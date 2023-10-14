@@ -1,5 +1,5 @@
 [package]
-name = "rmw-dash"
+name = "rmw"
 
 authors = { workspace = true }
 description = { workspace = true }
@@ -14,12 +14,10 @@ homepage = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
 
-[lib]
-name = "rmw_dash"
-crate-type = ["cdylib"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rmw = { path = "../rmw" }
 rmw-sys = { path = "../sys" }
 
+anyhow = { workspace = true }
 tracing = { workspace = true }
