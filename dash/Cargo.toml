@@ -1,5 +1,5 @@
 [package]
-name = "rmw-bindings"
+name = "rmw-dash"
 
 authors = { workspace = true }
 description = { workspace = true }
@@ -15,8 +15,10 @@ repository = { workspace = true }
 version = { workspace = true }
 
 [lib]
-name = "rmw_bindings"
+name = "rmw_dash"
 crate-type = ["cdylib"]
 
 [dependencies]
 rmw-sys = { path = "../sys" }
+
+tracing = { workspace = true }

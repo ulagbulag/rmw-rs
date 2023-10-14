@@ -1,4 +1,7 @@
-use std::{env, fs, path::PathBuf};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 
 use regex::Regex;
 
@@ -54,6 +57,8 @@ impl Builder {
             .write_to_file(&binding_path)
             .expect("Couldn't write bindings!");
 
+        // Convert constant types
+
         // Write RMW specification
         self.parser
             .build(binding_path, out_path.join(Self::RUST_RMW_OUT))
@@ -61,7 +66,8 @@ impl Builder {
 }
 
 struct RmwIncludeParser {
-    header: String,
+    ret_types: String,
+    rmw: String,
 }
 
 impl Default for RmwIncludeParser {
@@ -90,10 +96,18 @@ impl Default for RmwIncludeParser {
         );
 
         Self {
-            header: fs::read_to_string(format!(
+            ret_types: fs::read_to_string(format!(
+                "{home}/rmw/ret_types.h",
+                home = ament_include_path
+                    .iter()
+                    .find(|path| path.ends_with("/rmw"))
+                    .expect("ROS RMW package is missing."),
+            ))
+            .expect("Failed to read rmw/ret_types.h"),
+            rmw: fs::read_to_string(format!(
                 "{home}/rmw/rmw.h",
                 home = ament_include_path
-                    .into_iter()
+                    .iter()
                     .find(|path| path.ends_with("/rmw"))
                     .expect("ROS RMW package is missing."),
             ))
@@ -103,10 +117,15 @@ impl Default for RmwIncludeParser {
 }
 
 impl RmwIncludeParser {
-    fn build(self, binding_path: PathBuf, out_path: PathBuf) {
+    fn build(&self, binding_path: PathBuf, out_path: PathBuf) {
+        self.create_trait(&binding_path, &out_path);
+        self.patch_consts(&binding_path);
+    }
+
+    fn create_trait(&self, binding_path: &Path, out_path: &Path) {
         let re = Regex::new(r"^rmw_[_a-z]+\($").unwrap();
         let mut functions = self
-            .header
+            .rmw
             .split('\n')
             .map(|line| line.trim())
             .filter(|line| re.is_match(line))
@@ -127,7 +146,6 @@ impl RmwIncludeParser {
                 ))
                 .unwrap();
 
-                eprintln!("{function}");
                 let f_def = &re
                     .captures(&binding)
                     .expect("Cannot find function definition")[1];
@@ -145,6 +163,20 @@ pub unsafe trait RmwExtern {{
 "#,
         );
         fs::write(out_path, template_trait).expect("Failed to write rmw interface")
+    }
+
+    fn patch_consts(&self, binding_path: &Path) {
+        let mut out = fs::read_to_string(binding_path).expect("Failed to read output script");
+
+        let re = Regex::new(r"#define +([_A-Z0-9]+) +[0-9]+").unwrap();
+        for cap in re.captures_iter(&self.ret_types) {
+            let name = &cap[1];
+            let pat = format!("pub const {name}: u32");
+            let to = format!("pub const {name}: i32");
+            out = out.replace(&pat, &to);
+        }
+
+        fs::write(binding_path, out).expect("Failed to write output script")
     }
 }
 

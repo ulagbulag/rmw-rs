@@ -1,3 +1,5 @@
+use std::ffi::{c_char, c_void};
+
 use rmw_sys::{
     rcutils_allocator_t, rcutils_string_array_t, rmw_client_t, rmw_clients_t, rmw_context_t,
     rmw_event_callback_t, rmw_event_t, rmw_events_t, rmw_guard_conditions_t,
@@ -12,14 +14,34 @@ use rmw_sys::{
 
 pub struct Rwm {}
 
+macro_rules! unsupported {
+    ( $function:ident ) => {{
+        ::tracing::warn!(concat!(
+            stringify!($function),
+            " is not implemented for rmw_dash"
+        ));
+        ::rmw_sys::RMW_RET_UNSUPPORTED
+    }};
+}
+
+macro_rules! planned {
+    ( $function:ident ) => {{
+        ::tracing::warn!(concat!(
+            stringify!($function),
+            " is not implemented for rmw_dash yet"
+        ));
+        ::rmw_sys::RMW_RET_UNSUPPORTED
+    }};
+}
+
 unsafe impl ::rmw_sys::RmwExtern for Rwm {
     #[no_mangle]
     unsafe extern "C" fn rmw_borrow_loaned_message(
         publisher: *const rmw_publisher_t,
         type_support: *const rosidl_message_type_support_t,
-        ros_message: *mut *mut ::std::os::raw::c_void,
+        ros_message: *mut *mut c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_borrow_loaned_message)
     }
 
     #[no_mangle]
@@ -27,7 +49,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         client: *const rmw_client_t,
         qos: *mut rmw_qos_profile_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_client_request_publisher_get_actual_qos)
     }
 
     #[no_mangle]
@@ -35,59 +57,59 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         client: *const rmw_client_t,
         qos: *mut rmw_qos_profile_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_client_response_subscription_get_actual_qos)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_client_set_on_new_response_callback(
         client: *mut rmw_client_t,
         callback: rmw_event_callback_t,
-        user_data: *const ::std::os::raw::c_void,
+        user_data: *const c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_client_set_on_new_response_callback)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_count_clients(
         node: *const rmw_node_t,
-        service_name: *const ::std::os::raw::c_char,
+        service_name: *const c_char,
         count: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_count_clients)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_count_publishers(
         node: *const rmw_node_t,
-        topic_name: *const ::std::os::raw::c_char,
+        topic_name: *const c_char,
         count: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_count_publishers)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_count_services(
         node: *const rmw_node_t,
-        service_name: *const ::std::os::raw::c_char,
+        service_name: *const c_char,
         count: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_count_services)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_count_subscribers(
         node: *const rmw_node_t,
-        topic_name: *const ::std::os::raw::c_char,
+        topic_name: *const c_char,
         count: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_count_subscribers)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_create_client(
         node: *const rmw_node_t,
         type_support: *const rosidl_service_type_support_t,
-        service_name: *const ::std::os::raw::c_char,
+        service_name: *const c_char,
         qos_policies: *const rmw_qos_profile_t,
     ) -> *mut rmw_client_t {
         todo!()
@@ -96,8 +118,8 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
     #[no_mangle]
     unsafe extern "C" fn rmw_create_node(
         context: *mut rmw_context_t,
-        name: *const ::std::os::raw::c_char,
-        namespace_: *const ::std::os::raw::c_char,
+        name: *const c_char,
+        namespace_: *const c_char,
     ) -> *mut rmw_node_t {
         todo!()
     }
@@ -106,7 +128,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
     unsafe extern "C" fn rmw_create_publisher(
         node: *const rmw_node_t,
         type_support: *const rosidl_message_type_support_t,
-        topic_name: *const ::std::os::raw::c_char,
+        topic_name: *const c_char,
         qos_profile: *const rmw_qos_profile_t,
         publisher_options: *const rmw_publisher_options_t,
     ) -> *mut rmw_publisher_t {
@@ -117,7 +139,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
     unsafe extern "C" fn rmw_create_service(
         node: *const rmw_node_t,
         type_support: *const rosidl_service_type_support_t,
-        service_name: *const ::std::os::raw::c_char,
+        service_name: *const c_char,
         qos_profile: *const rmw_qos_profile_t,
     ) -> *mut rmw_service_t {
         todo!()
@@ -127,7 +149,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
     unsafe extern "C" fn rmw_create_subscription(
         node: *const rmw_node_t,
         type_support: *const rosidl_message_type_support_t,
-        topic_name: *const ::std::os::raw::c_char,
+        topic_name: *const c_char,
         qos_policies: *const rmw_qos_profile_t,
         subscription_options: *const rmw_subscription_options_t,
     ) -> *mut rmw_subscription_t {
@@ -138,32 +160,32 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
     unsafe extern "C" fn rmw_deserialize(
         serialized_message: *const rmw_serialized_message_t,
         type_support: *const rosidl_message_type_support_t,
-        ros_message: *mut ::std::os::raw::c_void,
+        ros_message: *mut c_void,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_deserialize)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_event_set_callback(
         event: *mut rmw_event_t,
         callback: rmw_event_callback_t,
-        user_data: *const ::std::os::raw::c_void,
+        user_data: *const c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_event_set_callback)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_fini_publisher_allocation(
         allocation: *mut rmw_publisher_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_fini_publisher_allocation)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_fini_subscription_allocation(
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_fini_subscription_allocation)
     }
 
     #[no_mangle]
@@ -172,7 +194,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         node_names: *mut rcutils_string_array_t,
         node_namespaces: *mut rcutils_string_array_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_get_node_names)
     }
 
     #[no_mangle]
@@ -182,7 +204,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         node_namespaces: *mut rcutils_string_array_t,
         enclaves: *mut rcutils_string_array_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_get_node_names_with_enclaves)
     }
 
     #[no_mangle]
@@ -191,7 +213,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         message_bounds: *const rosidl_runtime_c__Sequence__bound,
         size: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_get_serialized_message_size)
     }
 
     #[no_mangle]
@@ -200,7 +222,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         message_bounds: *const rosidl_runtime_c__Sequence__bound,
         allocation: *mut rmw_publisher_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_init_publisher_allocation)
     }
 
     #[no_mangle]
@@ -209,25 +231,25 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         message_bounds: *const rosidl_runtime_c__Sequence__bound,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_init_subscription_allocation)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_publish(
         publisher: *const rmw_publisher_t,
-        ros_message: *const ::std::os::raw::c_void,
+        ros_message: *const c_void,
         allocation: *mut rmw_publisher_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_publisher_t)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_publish_loaned_message(
         publisher: *const rmw_publisher_t,
-        ros_message: *mut ::std::os::raw::c_void,
+        ros_message: *mut c_void,
         allocation: *mut rmw_publisher_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_publish_loaned_message)
     }
 
     #[no_mangle]
@@ -236,7 +258,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         serialized_message: *const rmw_serialized_message_t,
         allocation: *mut rmw_publisher_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_publish_serialized_message)
     }
 
     #[no_mangle]
@@ -244,7 +266,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         publisher: *const rmw_publisher_t,
         subscription_count: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_publisher_count_matched_subscriptions)
     }
 
     #[no_mangle]
@@ -252,7 +274,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         publisher: *const rmw_publisher_t,
         qos: *mut rmw_qos_profile_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_publisher_get_actual_qos)
     }
 
     #[no_mangle]
@@ -260,50 +282,50 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         publisher: *const rmw_publisher_t,
         wait_timeout: rmw_time_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_publisher_wait_for_all_acked)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_return_loaned_message_from_publisher(
         publisher: *const rmw_publisher_t,
-        loaned_message: *mut ::std::os::raw::c_void,
+        loaned_message: *mut c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_return_loaned_message_from_publisher)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_return_loaned_message_from_subscription(
         subscription: *const rmw_subscription_t,
-        loaned_message: *mut ::std::os::raw::c_void,
+        loaned_message: *mut c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_return_loaned_message_from_subscription)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_send_request(
         client: *const rmw_client_t,
-        ros_request: *const ::std::os::raw::c_void,
+        ros_request: *const c_void,
         sequence_id: *mut i64,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_send_request)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_send_response(
         service: *const rmw_service_t,
         request_header: *mut rmw_request_id_t,
-        ros_response: *mut ::std::os::raw::c_void,
+        ros_response: *mut c_void,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_send_response)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_serialize(
-        ros_message: *const ::std::os::raw::c_void,
+        ros_message: *const c_void,
         type_support: *const rosidl_message_type_support_t,
         serialized_message: *mut rmw_serialized_message_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_serialize)
     }
 
     #[no_mangle]
@@ -311,7 +333,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         service: *const rmw_service_t,
         qos: *mut rmw_qos_profile_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_service_request_subscription_get_actual_qos)
     }
 
     #[no_mangle]
@@ -319,7 +341,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         service: *const rmw_service_t,
         qos: *mut rmw_qos_profile_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_service_response_publisher_get_actual_qos)
     }
 
     #[no_mangle]
@@ -328,16 +350,16 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         client: *const rmw_client_t,
         is_available: *mut bool,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_service_server_is_available)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_service_set_on_new_request_callback(
         service: *mut rmw_service_t,
         callback: rmw_event_callback_t,
-        user_data: *const ::std::os::raw::c_void,
+        user_data: *const c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_service_set_on_new_request_callback)
     }
 
     #[no_mangle]
@@ -345,7 +367,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         subscription: *const rmw_subscription_t,
         publisher_count: *mut usize,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_subscription_count_matched_publishers)
     }
 
     #[no_mangle]
@@ -353,7 +375,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         subscription: *const rmw_subscription_t,
         qos: *mut rmw_qos_profile_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_subscription_get_actual_qos)
     }
 
     #[no_mangle]
@@ -362,7 +384,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         allocator: *mut rcutils_allocator_t,
         options: *mut rmw_subscription_content_filter_options_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_subscription_get_content_filter)
     }
 
     #[no_mangle]
@@ -370,67 +392,67 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         subscription: *mut rmw_subscription_t,
         options: *const rmw_subscription_content_filter_options_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_subscription_set_content_filter)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_subscription_set_on_new_message_callback(
         subscription: *mut rmw_subscription_t,
         callback: rmw_event_callback_t,
-        user_data: *const ::std::os::raw::c_void,
+        user_data: *const c_void,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_subscription_set_on_new_message_callback)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_take(
         subscription: *const rmw_subscription_t,
-        ros_message: *mut ::std::os::raw::c_void,
+        ros_message: *mut c_void,
         taken: *mut bool,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_take_loaned_message(
         subscription: *const rmw_subscription_t,
-        loaned_message: *mut *mut ::std::os::raw::c_void,
+        loaned_message: *mut *mut c_void,
         taken: *mut bool,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_take_loaned_message)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_take_loaned_message_with_info(
         subscription: *const rmw_subscription_t,
-        loaned_message: *mut *mut ::std::os::raw::c_void,
+        loaned_message: *mut *mut c_void,
         taken: *mut bool,
         message_info: *mut rmw_message_info_t,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        unsupported!(rmw_take_loaned_message_with_info)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_take_request(
         service: *const rmw_service_t,
         request_header: *mut rmw_service_info_t,
-        ros_request: *mut ::std::os::raw::c_void,
+        ros_request: *mut c_void,
         taken: *mut bool,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take_request)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_take_response(
         client: *const rmw_client_t,
         request_header: *mut rmw_service_info_t,
-        ros_response: *mut ::std::os::raw::c_void,
+        ros_response: *mut c_void,
         taken: *mut bool,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take_response)
     }
 
     #[no_mangle]
@@ -442,7 +464,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         taken: *mut usize,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take_sequence)
     }
 
     #[no_mangle]
@@ -452,7 +474,7 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         taken: *mut bool,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take_serialized_message)
     }
 
     #[no_mangle]
@@ -463,18 +485,18 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         message_info: *mut rmw_message_info_t,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take_serialized_message_with_info)
     }
 
     #[no_mangle]
     unsafe extern "C" fn rmw_take_with_info(
         subscription: *const rmw_subscription_t,
-        ros_message: *mut ::std::os::raw::c_void,
+        ros_message: *mut c_void,
         taken: *mut bool,
         message_info: *mut rmw_message_info_t,
         allocation: *mut rmw_subscription_allocation_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_take_with_info)
     }
 
     #[no_mangle]
@@ -487,6 +509,6 @@ unsafe impl ::rmw_sys::RmwExtern for Rwm {
         wait_set: *mut rmw_wait_set_t,
         wait_timeout: *const rmw_time_t,
     ) -> rmw_ret_t {
-        todo!()
+        planned!(rmw_wait)
     }
 }
