@@ -1,0 +1,20 @@
+[workspace]
+members = ["./bindings", "./sys"]
+resolver = "2"
+
+[workspace.package]
+authors = ["Ho Kim <ho.kim@ulagbulag.io>"]
+description = "ROS 2 RMW Bindings & Wrappers"
+documentation = "https://docs.rs/rmw"
+edition = "2021"
+include = ["src/**/*.rs", "Cargo.toml"]
+keywords = ["dds", "rmw", "ros"]
+license = "MIT OR Apache-2.0"
+readme = "./README.md"
+rust-version = "1.62"
+homepage = "https://github.com/ulagbulag/rmw-rs"
+repository = "https://github.com/ulagbulag/rmw-rs"
+version = "0.1.0"
+
+[workspace.dependencies]
+bindgen = { version = "0.68" }
