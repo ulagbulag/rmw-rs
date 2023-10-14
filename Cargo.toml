@@ -18,3 +18,4 @@ version = "0.1.0"
 
 [workspace.dependencies]
 bindgen = { version = "0.68" }
+regex = { version = "1.10" }
